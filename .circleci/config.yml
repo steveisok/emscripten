@@ -361,6 +361,11 @@ jobs:
     steps:
       - run-tests:
           test_targets: "posixtest"
+  test-lsan:
+    executor: bionic
+    steps:
+      - run-tests:
+          test_targets: "lsan"
   test-wasm0:
     executor: bionic
     steps:
@@ -466,6 +471,9 @@ workflows:
       - eslint
       - build-docs
       - build-linux
+      - test-lsan:
+          requires:
+            - build-linux
       - test-sanity:
           requires:
             - build-linux

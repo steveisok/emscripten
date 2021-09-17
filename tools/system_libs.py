@@ -1730,14 +1730,13 @@ def calculate(input_files, forced):
       add_library('libstandalonewasm')
     add_library('libc_rt')
 
-    if settings.USE_LSAN:
-      force_include.add('liblsan_rt')
-      add_library('liblsan_rt')
-
     if settings.USE_ASAN:
       force_include.add('libasan_rt')
       add_library('libasan_rt')
       add_library('libasan_js')
+    elif settings.USE_LSAN:
+      force_include.add('liblsan_rt')
+      add_library('liblsan_rt')
 
     if settings.UBSAN_RUNTIME == 1:
       add_library('libubsan_minimal_rt')
