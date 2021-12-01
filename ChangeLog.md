@@ -25,6 +25,10 @@ See docs/process.md for more on how version tagging works.
 - libc++ library updated to llvm-13. (#15901)
 - libc++-abi library updated to llvm-13. (#15904)
 - compiler-rt library updated to llvm-13. (#15906)
+- Remove support for deprecated `EMMAKEN_COMPILER`, `EMMAKEN_CFLAGS`, and
+  `EMMAKEN_NO_SDK`.
+  environment variabls.  The former is replaced by setting `LLVM_ROOT` in the
+  config file.  The latter is replaced by `EMCC_CFLAGS`.
 
 3.1.0 - 12/22/2021
 ------------------
