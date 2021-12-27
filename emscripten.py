@@ -27,6 +27,7 @@ from tools import shared
 from tools import utils
 from tools import gen_struct_info
 from tools import webassembly
+from tools import extract_metadata
 from tools.utils import exit_with_error, path_from_root
 from tools.shared import WINDOWS, asmjs_mangle
 from tools.shared import treat_as_user_function, strip_prefix
@@ -445,11 +446,40 @@ def finalize_wasm(infile, outfile, memfile, DEBUG):
 
   if settings.DEBUG_LEVEL >= 3:
     args.append('--dwarf')
+
+  test_pymetadata = True
+  if test_pymetadata:
+    pymetadata = extract_metadata.extract_metadata(infile)
   stdout = building.run_binaryen_command('wasm-emscripten-finalize',
                                          infile=infile,
                                          outfile=outfile if modify_wasm else None,
                                          args=args,
                                          stdout=subprocess.PIPE)
+  metadata = load_metadata_wasm(stdout, DEBUG)
+  if test_pymetadata:
+    if modify_wasm:
+      extract_metadata.update_metadata(outfile, pymetadata)
+    elif 'main' in pymetadata['exports']:
+      pymetadata['mainReadsParams'] = 1
+    if sorted(metadata.keys()) != sorted(pymetadata.keys()):
+      print(sorted(metadata.keys()))
+      print(sorted(pymetadata.keys()))
+      exit_with_error('xxx')
+    for key in metadata:
+      old = metadata[key]
+      new = pymetadata[key]
+      if key == 'features':
+        old = sorted(old)
+        new = sorted(new)
+      if old != new:
+        print(key)
+        open(path_from_root('first.txt'), 'w').write(pprint.pformat(old))
+        open(path_from_root('second.txt'), 'w').write(pprint.pformat(new))
+        print(pprint.pformat(old))
+        print(pprint.pformat(new))
+        exit_with_error('yyy')
+  metadata = pymetadata
+
   if modify_wasm:
     building.save_intermediate(infile, 'post_finalize.wasm')
   elif infile != outfile:
@@ -464,7 +494,7 @@ def finalize_wasm(infile, outfile, memfile, DEBUG):
     # the dynamic linking case, our loader zeros it out)
     remove_trailing_zeros(memfile)
 
-  return load_metadata_wasm(stdout, DEBUG)
+  return metadata
 
 
 def create_asm_consts(metadata):
